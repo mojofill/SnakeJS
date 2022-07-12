@@ -5,6 +5,7 @@ const HEIGHT = document.body.clientHeight;
 const WIDTH = document.body.clientWidth;
 
 const SNAKE_COLOR = 'blue';
+const SNAKE_HEAD_COLOR = 'black';
 const GROUND_COLOR = 'green';
 const APPLE_COLOR = 'red';
 
@@ -18,7 +19,7 @@ const PIXEL_TOP = (HEIGHT - PIXEL_HEIGHT) / 2;
 const PIXEL_LEFT = (WIDTH - PIXEL_WIDTH) / 2;
 
 const RENDER_FPS = 60;
-const GAME_FPS = 2;
+const GAME_FPS = 10;
 
 let frameTracker = 0;
 
@@ -29,14 +30,15 @@ let gameEnd = false;
 
 let direction = {
     up: false,
-    right: false,
-    left: false,
+    right: true,
+    left: true,
     down: false,
 }
 
 function init() {
     canvas.style.top = `${PIXEL_TOP}px`;
     canvas.style.left = `${PIXEL_LEFT}px`;
+    canvas.style.position = 'fixed';
     canvas.style.height = PIXEL_HEIGHT;
     canvas.style.width = PIXEL_WIDTH;
     canvas.height = PIXEL_HEIGHT;
@@ -44,7 +46,7 @@ function init() {
 
     addEventListeners()
 
-    snakeCoords = [[3, 10], [4, 10]];
+    snakeCoords = [[4, 10], [3, 10]];
     spawnNewApple();
 
     setTimeout(loop, 1000 / RENDER_FPS);
@@ -70,19 +72,27 @@ function render() {
 
     for (let y = 0; y < gameHeight; y++) {
         for (let x = 0; x < gameWidth; x++) {
-            if ([x, y] in snakeCoords) {
-                ctx.fillStyle = SNAKE_COLOR;
+            let inSnakeCoords = false;
+            let i = 0;
+            for (const coord of snakeCoords) {
+                inSnakeCoords = coord[0] === x && coord[1] === y;
+                if (inSnakeCoords) break;
+                i++;
             }
-            else ctx.fillStyle = appleCoord === [x, y] ? APPLE_COLOR : GROUND_COLOR;
 
-            ctx.fillRect(x * UNIT_WIDTH. y * UNIT_WIDTH, UNIT_WIDTH, UNIT_WIDTH);
+            if (inSnakeCoords) {
+                ctx.fillStyle = i === 0 ? SNAKE_HEAD_COLOR : SNAKE_COLOR;
+            }
+            else ctx.fillStyle = (appleCoord[0] === x && appleCoord[1] === y) ? APPLE_COLOR : GROUND_COLOR;
+
+            ctx.fillRect(x * UNIT_WIDTH, y * UNIT_WIDTH, UNIT_WIDTH, UNIT_WIDTH);
         }
     }
 }
 
 function loop() {
     render();
-    if (frameTracker >= GAME_FPS) {
+    if (frameTracker >= 1000 / GAME_FPS) {
         nextGameStep();
         frameTracker = 0;
     }
@@ -99,17 +109,26 @@ function nextGameStep() {
 
     if (direction.up || direction.down) {
         moveAxis = direction.up ? -1 : 1;
-        if (head[1] + moveAxis < 0 || head[1] + moveAxis >= gameHeight) endGame();
+        if (head[1] + moveAxis < 0 || head[1] + moveAxis >= gameHeight) {
+            console('so confused???')
+            endGame();
+        }
         else head[1] += moveAxis;
     }
     else {
         moveAxis = direction.left ? -1 : 1;
-        if (head[0] + moveAxis < 0 || head[0] + moveAxis >= gameWidth) endGame();
+        if (head[0] + moveAxis < 0 || head[0] + moveAxis >= gameWidth) {
+            console.log('tf')
+            endGame();
+        }
         else head[0] += moveAxis;
     }
 
     for (const coord of snakeCoords) {
-        if (head[0] === coord[0] && head[1] === coord[1]) endGame();
+        if (head[0] === coord[0] && head[1] === coord[1]) {
+            console.log('no way this is where i got called')
+            endGame();
+        }
     }
 
     if (gameEnd) return; // if the game has ended then return so code below does not run
@@ -117,6 +136,8 @@ function nextGameStep() {
     if (snakeCoords[0][0] !== appleCoord[0] || snakeCoords[0][1] !== appleCoord[1]) { // if the new head does not eat an apple, take away the last part of the snake body
         snakeCoords.splice(snakeCoords.length - 1, 1);
     }
+    
+    snakeCoords.splice(0, 0, head);
 }
 
 function endGame() {
@@ -135,5 +156,5 @@ function spawnNewApple() {
 
     appleCoord = [x, y];
 }
-console.log('yo?!?!?')
+
 init();
