@@ -94,7 +94,29 @@ function loop() {
 }
 
 function nextGameStep() {
-    let coordCheck = (direction.up || direction.down) ? 1 : 0;
+    head = [snakeCoords[0][0], snakeCoords[0][1]];
+    let moveAxis;
+
+    if (direction.up || direction.down) {
+        moveAxis = direction.up ? -1 : 1;
+        if (head[1] + moveAxis < 0 || head[1] + moveAxis >= gameHeight) endGame();
+        else head[1] += moveAxis;
+    }
+    else {
+        moveAxis = direction.left ? -1 : 1;
+        if (head[0] + moveAxis < 0 || head[0] + moveAxis >= gameWidth) endGame();
+        else head[0] += moveAxis;
+    }
+
+    for (const coord of snakeCoords) {
+        if (head[0] === coord[0] && head[1] === coord[1]) endGame();
+    }
+
+    if (gameEnd) return; // if the game has ended then return so code below does not run
+
+    if (snakeCoords[0][0] !== appleCoord[0] || snakeCoords[0][1] !== appleCoord[1]) { // if the new head does not eat an apple, take away the last part of the snake body
+        snakeCoords.splice(snakeCoords.length - 1, 1);
+    }
 }
 
 function endGame() {
@@ -113,3 +135,5 @@ function spawnNewApple() {
 
     appleCoord = [x, y];
 }
+
+init();
