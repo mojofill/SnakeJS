@@ -31,7 +31,7 @@ let gameEnd = false;
 let direction = {
     up: false,
     right: true,
-    left: true,
+    left: false,
     down: false,
 }
 
@@ -54,10 +54,34 @@ function init() {
 
 function addEventListeners() {
     document.body.addEventListener('keydown', (e) => {
-        direction.up = e.code === 'ArrowUp';
-        direction.down = e.code === 'ArrowDown';
-        direction.left = e.code === 'ArrowLeft';
-        direction.right = e.code === 'ArrowRight';
+        if (e.code === 'ArrowUp' || e.code === 'ArrowDown') {
+            if (e.code === "ArrowUp" && !direction.down) {
+                direction.up = true;
+                direction.down = false;
+                direction.left = false;
+                direction.right = false;
+            }
+            else if (e.code === 'ArrowDown' && !direction.up) {
+                direction.down = true;
+                direction.up = false;
+                direction.left = false;
+                direction.right = false;
+            }
+        }
+        else {
+            if (e.code === "ArrowRight" && !direction.left) {
+                direction.right = true;
+                direction.left = false;
+                direction.down = false;
+                direction.up = false;
+            }
+            else if (e.code === 'ArrowLeft' && !direction.right) {
+                direction.left = true;
+                direction.right = false;
+                direction.up = false;
+                direction.down = false;
+            }
+        }
     })
 }
 
@@ -96,7 +120,7 @@ function loop() {
         nextGameStep();
         frameTracker = 0;
     }
-    else frameTracker++;
+    else frameTracker += 1000 / RENDER_FPS;
     if (!gameEnd) setTimeout(loop, 1000 / RENDER_FPS);
     else {
         document.title = "Game Ended Bye";
@@ -110,7 +134,6 @@ function nextGameStep() {
     if (direction.up || direction.down) {
         moveAxis = direction.up ? -1 : 1;
         if (head[1] + moveAxis < 0 || head[1] + moveAxis >= gameHeight) {
-            console('so confused???')
             endGame();
         }
         else head[1] += moveAxis;
@@ -118,15 +141,15 @@ function nextGameStep() {
     else {
         moveAxis = direction.left ? -1 : 1;
         if (head[0] + moveAxis < 0 || head[0] + moveAxis >= gameWidth) {
-            console.log('tf')
             endGame();
         }
-        else head[0] += moveAxis;
+        else {
+            head[0] += moveAxis;
+        }
     }
 
     for (const coord of snakeCoords) {
         if (head[0] === coord[0] && head[1] === coord[1]) {
-            console.log('no way this is where i got called')
             endGame();
         }
     }
@@ -135,6 +158,10 @@ function nextGameStep() {
 
     if (snakeCoords[0][0] !== appleCoord[0] || snakeCoords[0][1] !== appleCoord[1]) { // if the new head does not eat an apple, take away the last part of the snake body
         snakeCoords.splice(snakeCoords.length - 1, 1);
+    }
+    else {
+        // snake did eat apple
+        spawnNewApple();
     }
     
     snakeCoords.splice(0, 0, head);
