@@ -135,5 +135,5 @@ function spawnNewApple() {
 
     appleCoord = [x, y];
 }
-
+console.log('yo?!?!?')
 init();
